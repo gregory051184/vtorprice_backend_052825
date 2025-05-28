@@ -1,0 +1,15 @@
+{% extends "admin/base.html" %}
+{% load i18n static admin_urls admin_modify %}
+
+{% block content %}
+    <div id="content-main">
+        <form method="post">
+            {% csrf_token %}
+            <h2>{{ title }}</h2>
+            <p>Выберете менеджера:</p>
+            {{ form.as_p }}
+            <input type="hidden" name="action" value="assign_managers"/>
+            <input type="submit" name="apply" value="Назначить">
+        </form>
+    </div>
+{% endblock %}

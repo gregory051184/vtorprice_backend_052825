@@ -1,0 +1,107 @@
+version: "3.4"
+
+services:
+  redis:
+    image: redis:latest
+    restart: unless-stopped
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+      - redis_volume:/data
+    ports:
+      - "6379"
+    networks:
+      - redis_network
+
+  db:
+    image: postgres:12
+    container_name: db
+    command: postgres -c 'max_connections=200'
+    ports:
+      - "5432"
+    env_file:
+      - .env
+    volumes:
+      - database_volume:/var/lib/postgresql/data
+    networks:
+      - django_network
+
+  app:
+    build: .
+    container_name: app
+    environment:
+      - DJANGO_SETTINGS_MODULE
+    env_file:
+      - .env
+    command: /start-web.sh
+    volumes:
+      - /etc/static:/code/static
+      - /etc/media:/code/media
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: always
+    links:
+      - db:db
+    depends_on:
+      - db
+    networks:
+      - django_network
+      - redis_network
+
+  redis_stage:
+    container_name: redis_stage
+    image: redis:latest
+    restart: unless-stopped
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+      - redis_stage_volume:/data
+    ports:
+      - "6379"
+    networks:
+      - django_stage_network  
+
+  db_stage:
+    image: postgres:12
+    command: postgres -c 'max_connections=200'
+    container_name: db_stage
+    ports:
+      - "5432"
+    env_file:
+      - .env
+    volumes:
+      - database_stage_volume:/var/lib/postgresql/data
+    networks:
+      - django_stage_network
+
+  app_stage:
+    build: .
+    container_name: app_stage
+    environment:
+      - DJANGO_SETTINGS_MODULE
+    env_file:
+      - .env
+    command: /start-web.sh
+    volumes:
+      - /etc/static:/code/static
+      - /etc/media:/code/media
+    ports:
+      - "127.0.0.1:8001:8000"
+    restart: always
+    depends_on:
+      - db_stage
+    networks:
+      - django_stage_network 
+
+
+volumes:
+  database_volume:
+  redis_volume:
+  database_stage_volume:
+  redis_stage_volume:
+
+networks:
+  django_network:
+    driver: bridge
+  redis_network:
+    driver: bridge
+  django_stage_network:
+    driver: bridge

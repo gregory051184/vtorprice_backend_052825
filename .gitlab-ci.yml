@@ -1,0 +1,26 @@
+image: node:latest
+
+stages:
+  - dev
+
+prod-job:
+  stage: dev
+  only:
+    - prod # Сейчас на этом окружении тестируют заказчики
+  script:
+    - cp $DEPLOY_ENV_FILE .env
+    - docker compose build app redis db
+    - docker compose up -d app redis db
+  tags:
+    - backend-stage
+
+dev-job:
+  stage: dev
+  only:
+    - develop # Заменить после официальной публикации в прод на stage
+  script:
+    - cp $STAGE_ENV .env
+    - docker compose build app_stage redis_stage db_stage
+    - docker compose up -d app_stage redis_stage db_stage
+  tags:
+    - backend-stage

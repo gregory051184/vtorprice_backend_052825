@@ -1,0 +1,38 @@
+repos:
+  - repo: local
+    hooks:
+      - id: black
+        name: black
+        entry: black
+        language: system
+        types: [ python ]
+        args: [ --line-length=79, --target-version=py37, --verbose]
+
+      - id: autoflake
+        name: autoflake
+        entry: autoflake
+        language: system
+        types: [ python ]
+        args:
+          [
+            "--in-place",
+            "--remove-all-unused-imports",
+            "--remove-unused-variables",
+            "--expand-star-imports",
+            "--ignore-init-module-imports",
+          ]
+        files: \.py$
+
+      - id: isort
+        name: Sorting import statements
+        entry: bash -c 'isort "$@"; git add -u' --
+        language: python
+        args: [ "--filter-files", "--check-only"]
+        files: \.py$
+
+  - repo: https://github.com/ecugol/pre-commit-hooks-django
+    rev: v0.4.0  # Use the ref you want to point at
+    hooks:
+    -   id: check-untracked-migrations
+    -   id: check-unapplied-migrations
+    -   id: check-absent-migrations
